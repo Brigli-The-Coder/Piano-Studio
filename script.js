@@ -28,7 +28,7 @@ window.translations = {
     "about-title": "Merald Shtalbi",
     "about-p1": "Piano Studio është hapësira e Merald Shtalbit në Shkodër, e krijuar për ata që duan të mësojnë piano me qartësi dhe durim — pavarësisht moshës apo pikënisjes.",
     "about-p2": "Qasja mbështetet te themelet e forta: teknikë e saktë, dëgjim muzikor dhe kënaqësi në çdo orë mësimi. Nxënësit ndërtojnë njohuri hap pas hapi, duke luajtur repertorin që u pëlqen vërtet, jo vetëm ushtrime.",
-    "about-p3": "Qëllimi është i thjeshtë: çdo nxënës të largohet nga studio duke ditur pak më shumë se çka dinte kur hyri, dhe të dojë të kthehet përsëri.",
+    "about-p3": "Synimi ynë është që çdo nxënës, pas çdo mësimi, të largohet nga studioja me njohuri të reja, më shumë vetëbesim dhe motivim për të vazhduar rrugëtimin e tij.",
     "stat-1": "Mësim individual",
     "stat-2": "Vjeç e lart",
     "stat-3": "Studio",
@@ -77,7 +77,7 @@ window.translations = {
     "about-title": "Merald Shtalbi",
     "about-p1": "Piano Studio is Merald Shtalbi's space in Shkodër, created for anyone wanting to learn piano with clarity and patience — regardless of age or starting point.",
     "about-p2": "The approach rests on solid foundations: correct technique, musical ear, and joy in every lesson. Students build knowledge step by step, playing repertoire they genuinely love, not just exercises.",
-    "about-p3": "The goal is simple: every student leaves the studio knowing a little more than when they entered, and wanting to return.",
+    "about-p3": "Our goal is for every student to leave each lesson with new knowledge, more confidence, and the motivation to keep going on their musical journey.",
     "stat-1": "1:1 Private Lessons",
     "stat-2": "Ages 5 & Up",
     "stat-3": "Studio Location",
@@ -126,7 +126,7 @@ window.translations = {
     "about-title": "Merald Shtalbi",
     "about-p1": "Piano Studio è lo spazio di Merald Shtalbi a Scutari, creato per chi desidera imparare il pianoforte con chiarezza e pazienza — indipendentemente dall'età o dal punto di partenza.",
     "about-p2": "L'approccio si fonda su basi solide: tecnica corretta, orecchio musicale e piacere in ogni lezione. Gli studenti acquisiscono competenze passo dopo passo, suonando il repertorio che amano davvero.",
-    "about-p3": "L'obiettivo è semplice: ogni studente lascia lo studio sapendo qualcosa in più rispetto a quando è entrato, con la voglia di tornare.",
+    "about-p3": "Il nostro obiettivo è che ogni studente, dopo ogni lezione, lasci lo studio con nuove conoscenze, più fiducia e la motivazione per continuare il proprio percorso musicale.",
     "stat-1": "Lezione individuale",
     "stat-2": "Da 5 anni in sù",
     "stat-3": "Studio",
@@ -175,7 +175,7 @@ window.translations = {
     "about-title": "Merald Shtalbi",
     "about-p1": "Piano Studio est l'espace de Merald Shtalbi à Shkodër, créé pour ceux qui veulent apprendre le piano avec clarté et patience — quel que soit l'âge ou le point de départ.",
     "about-p2": "L'approche repose sur des bases solides : technique correcte, oreille musicale et plaisir à chaque leçon. Les élèves progressent étape par étape.",
-    "about-p3": "L'objectif est simple : que chaque élève reparte du studio en sachant un peu plus qu'en arrivant, et avec l'envie de revenir.",
+    "about-p3": "Notre objectif est que chaque élève, après chaque leçon, reparte du studio avec de nouvelles connaissances, plus de confiance et l'envie de poursuivre son parcours musical.",
     "stat-1": "Cours individuel",
     "stat-2": "Dès 5 ans",
     "stat-3": "Studio",
@@ -224,7 +224,7 @@ window.translations = {
     "about-title": "Merald Shtalbi",
     "about-p1": "Piano Studio ist Merald Shtalbis Raum in Shkodër, geschaffen für alle, die Klavier mit Klarheit und Geduld lernen möchten — unabhängig von Alter oder Vorkenntnissen.",
     "about-p2": "Der Ansatz baut auf starken Fundamenten auf: richtige Technik, Gehörbildung und Freude an jeder Unterrichtsstunde.",
-    "about-p3": "Das Ziel ist einfach: Jeder Schüler soll das Studio schlauer und mit dem Wunsch verlassen, wiederzukommen.",
+    "about-p3": "Unser Ziel ist es, dass jeder Schüler nach jeder Stunde das Studio mit neuem Wissen, mehr Selbstvertrauen und der Motivation verlässt, seinen musikalischen Weg fortzusetzen.",
     "stat-1": "Einzelunterricht",
     "stat-2": "Ab 5 Jahren",
     "stat-3": "Studio",
@@ -273,7 +273,7 @@ window.translations = {
     "about-title": "Merald Shtalbi",
     "about-p1": "Piano Studio es el espacio de Merald Shtalbi en Shkodër, creado para quienes desean aprender piano con claridad y paciencia — sin importar la edad o el punto de partida.",
     "about-p2": "El enfoque se basa en cimientos sólidos: técnica correcta, oído musical y disfrute en cada lección.",
-    "about-p3": "El objetivo es simple: que cada alumno se vaya del estudio sabiendo un poco más que cuando entró, y con ganas de volver.",
+    "about-p3": "Nuestro objetivo es que cada alumno, después de cada clase, salga del estudio con nuevos conocimientos, más confianza y la motivación para seguir su camino musical.",
     "stat-1": "Clase individual",
     "stat-2": "Desde 5 años",
     "stat-3": "Studio",
@@ -368,11 +368,81 @@ function initHeaderAndMenu() {
 }
 
 // ==========================================================
+// PIANO SOUND ENGINE (Web Audio API — synthesized, no audio
+// files, no CDN, no external dependency, near-zero footprint)
+// ==========================================================
+let audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AC();
+  }
+  // Some browsers start contexts "suspended" until a user gesture.
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// Standard piano note frequencies (Hz), 4th/5th octave range.
+// Extend this map as needed — key = note name, value = frequency.
+const NOTE_FREQUENCIES = {
+  'C4': 261.63, 'C#4': 277.18,
+  'D4': 293.66, 'D#4': 311.13,
+  'E4': 329.63,
+  'F4': 349.23, 'F#4': 369.99,
+  'G4': 392.00, 'G#4': 415.30,
+  'A4': 440.00, 'A#4': 466.16,
+  'B4': 493.88,
+  'C5': 523.25, 'C#5': 554.37,
+  'D5': 587.33, 'D#5': 622.25,
+  'E5': 659.25,
+  'F5': 698.46, 'F#5': 739.99,
+  'G5': 783.99
+};
+
+function playNote(frequency) {
+  const ctx = getAudioContext();
+  const now = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'triangle'; // softer, more piano-like than a raw sine/square
+  osc.frequency.setValueAtTime(frequency, now);
+
+  // Quick attack, natural decay — mimics a plucked/struck string envelope.
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.25, now + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.9);
+}
+
+// ==========================================================
 // PIANO KEY DIVIDERS (decorative, interactive)
 // ==========================================================
 function buildPianoKeys() {
   const WHITE_COUNT = 20;
   const blackAfter = [true, true, false, true, true, true, false];
+
+  // Map key index -> note name, ONLY for keys that should play sound.
+  // Index counts white keys left-to-right starting at 0; black keys use
+  // the format "<precedingWhiteIndex>b" (the black key right after that
+  // white key). Leave a key out of this map and it stays silent/decorative,
+  // exactly like today — just add entries here as notes are assigned.
+  //
+  // Example (uncomment/edit once specific keys are chosen):
+  // const KEY_NOTES = {
+  //   0: 'C4',
+  //   '0b': 'C#4',
+  //   1: 'D4',
+  //   2: 'E4',
+  // };
+  const KEY_NOTES = {};
 
   document.querySelectorAll('[data-piano]').forEach((container) => {
     container.innerHTML = '';
@@ -387,6 +457,8 @@ function buildPianoKeys() {
     for (let i = 0; i < WHITE_COUNT; i++) {
       const key = document.createElement('div');
       key.className = 'key';
+      key.dataset.index = i;
+      if (KEY_NOTES[i]) key.dataset.note = KEY_NOTES[i];
       whiteWrap.appendChild(key);
       whites.push(key);
     }
@@ -400,6 +472,8 @@ function buildPianoKeys() {
           black.className = 'key black';
           black.style.left = w.offsetLeft + whiteWidth * 0.68 + 'px';
           black.style.width = whiteWidth * 0.62 + 'px';
+          const blackKey = i + 'b';
+          if (KEY_NOTES[blackKey]) black.dataset.note = KEY_NOTES[blackKey];
           whiteWrap.appendChild(black);
         }
       });
@@ -408,6 +482,11 @@ function buildPianoKeys() {
     const press = (el) => {
       el.classList.add('pressed');
       setTimeout(() => el.classList.remove('pressed'), 160);
+
+      const note = el.dataset.note;
+      if (note && NOTE_FREQUENCIES[note]) {
+        playNote(NOTE_FREQUENCIES[note]);
+      }
     };
     whiteWrap.addEventListener('pointerdown', (e) => {
       if (e.target.classList.contains('key')) press(e.target);
