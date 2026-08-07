@@ -323,16 +323,18 @@ footer .footer-bottom a{
   display:block;
 }
 
-/* On mobile: let the video keep its own aspect ratio (no crop, no empty
-   letterbox bars) instead of forcing a fixed 100vh container. */
+/* On mobile: let the video keep its own natural aspect ratio (no crop,
+   no empty bars) instead of forcing a fixed 100vh container. */
 @media(max-width:720px){
   .hero{
     height:auto;
+    z-index:0;
   }
   .hero video{
+    width:100%;
     height:auto;
     object-fit:contain;
-    aspect-ratio:9/16; /* adjust to match the actual video's ratio if different */
+    display:block;
   }
 }
 .hero-content{
