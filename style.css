@@ -322,6 +322,19 @@ footer .footer-bottom a{
   object-fit:cover;
   display:block;
 }
+
+/* On mobile: let the video keep its own aspect ratio (no crop, no empty
+   letterbox bars) instead of forcing a fixed 100vh container. */
+@media(max-width:720px){
+  .hero{
+    height:auto;
+  }
+  .hero video{
+    height:auto;
+    object-fit:contain;
+    aspect-ratio:9/16; /* adjust to match the actual video's ratio if different */
+  }
+}
 .hero-content{
   position:relative;
   z-index:2;
