@@ -417,14 +417,45 @@ function playNote(frequency) {
 
   // Quick attack, natural decay — mimics a plucked/struck string envelope.
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.25, now + 0.01);
+  gain.gain.linearRampToValueAtTime(0.90, now + 0.01);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
 
+  // Simple echo (delay + feedback) so notes ring out with a bit of space,
+  // synthesized entirely with Web Audio — no external files needed.
+  const delay = ctx.createDelay();
+  delay.delayTime.setValueAtTime(0.22, now);
+
+  const feedback = ctx.createGain();
+  feedback.gain.setValueAtTime(0.35, now); // how much echo repeats
+
+  const echoLevel = ctx.createGain();
+  echoLevel.gain.setValueAtTime(0.5, now); // echo volume relative to dry signal
+
+  // Dry path: straight to output
   osc.connect(gain);
   gain.connect(ctx.destination);
 
+  // Wet path: through the delay/feedback loop
+  gain.connect(delay);
+  delay.connect(feedback);
+  feedback.connect(delay); // feeds back into itself for repeating echoes
+  delay.connect(echoLevel);
+  echoLevel.connect(ctx.destination);
+
   osc.start(now);
   osc.stop(now + 0.9);
+
+  // Stop feeding new signal into the echo loop once the note itself
+  // has finished, so echoes decay naturally instead of looping forever.
+  setTimeout(() => {
+    try {
+      feedback.disconnect();
+      delay.disconnect();
+      echoLevel.disconnect();
+    } catch (e) {
+      // already disconnected — safe to ignore
+    }
+  }, 2000);
 }
 
 // ==========================================================
