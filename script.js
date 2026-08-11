@@ -415,47 +415,36 @@ function playNote(frequency) {
   osc.type = 'triangle'; // softer, more piano-like than a raw sine/square
   osc.frequency.setValueAtTime(frequency, now);
 
-  // Quick attack, natural decay — mimics a plucked/struck string envelope.
+  // Sustain like a held piano key: quick attack, then a long, smooth
+  // decay tail — a single ringing note, not a repeating echo.
+  const SUSTAIN_SECONDS = 3.2;
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.90, now + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+  gain.gain.linearRampToValueAtTime(0.9, now + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + SUSTAIN_SECONDS);
 
-  // Simple echo (delay + feedback) so notes ring out with a bit of space,
-  // synthesized entirely with Web Audio — no external files needed.
-  const delay = ctx.createDelay();
-  delay.delayTime.setValueAtTime(0.22, now);
+  // A short, densely-spaced set of delays (no feedback loop) blurred
+  // together to thicken the tail into a smooth reverb-like "room" sound
+  // instead of distinct repeats. Synthesized entirely with Web Audio.
+  const reverbTaps = [0.03, 0.06, 0.09, 0.13];
+  const reverbGains = [0.22, 0.16, 0.11, 0.07];
 
-  const feedback = ctx.createGain();
-  feedback.gain.setValueAtTime(0.35, now); // how much echo repeats
-
-  const echoLevel = ctx.createGain();
-  echoLevel.gain.setValueAtTime(0.5, now); // echo volume relative to dry signal
-
-  // Dry path: straight to output
   osc.connect(gain);
   gain.connect(ctx.destination);
 
-  // Wet path: through the delay/feedback loop
-  gain.connect(delay);
-  delay.connect(feedback);
-  feedback.connect(delay); // feeds back into itself for repeating echoes
-  delay.connect(echoLevel);
-  echoLevel.connect(ctx.destination);
+  reverbTaps.forEach((time, i) => {
+    const delay = ctx.createDelay();
+    delay.delayTime.setValueAtTime(time, now);
+
+    const tapGain = ctx.createGain();
+    tapGain.gain.setValueAtTime(reverbGains[i], now);
+
+    gain.connect(delay);
+    delay.connect(tapGain);
+    tapGain.connect(ctx.destination);
+  });
 
   osc.start(now);
-  osc.stop(now + 0.9);
-
-  // Stop feeding new signal into the echo loop once the note itself
-  // has finished, so echoes decay naturally instead of looping forever.
-  setTimeout(() => {
-    try {
-      feedback.disconnect();
-      delay.disconnect();
-      echoLevel.disconnect();
-    } catch (e) {
-      // already disconnected — safe to ignore
-    }
-  }, 2000);
+  osc.stop(now + SUSTAIN_SECONDS);
 }
 
 // ==========================================================
