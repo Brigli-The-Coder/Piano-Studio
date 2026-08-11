@@ -415,33 +415,15 @@ function playNote(frequency) {
   osc.type = 'triangle'; // softer, more piano-like than a raw sine/square
   osc.frequency.setValueAtTime(frequency, now);
 
-  // Sustain like a held piano key: quick attack, then a long, smooth
-  // decay tail — a single ringing note, not a repeating echo.
+  // Sustain like a held piano key: quick attack, then one long, smooth
+  // decay tail. A single note ringing out — no delays, no repeats.
   const SUSTAIN_SECONDS = 3.2;
   gain.gain.setValueAtTime(0, now);
   gain.gain.linearRampToValueAtTime(0.9, now + 0.01);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + SUSTAIN_SECONDS);
 
-  // A short, densely-spaced set of delays (no feedback loop) blurred
-  // together to thicken the tail into a smooth reverb-like "room" sound
-  // instead of distinct repeats. Synthesized entirely with Web Audio.
-  const reverbTaps = [0.03, 0.06, 0.09, 0.13];
-  const reverbGains = [0.22, 0.16, 0.11, 0.07];
-
   osc.connect(gain);
   gain.connect(ctx.destination);
-
-  reverbTaps.forEach((time, i) => {
-    const delay = ctx.createDelay();
-    delay.delayTime.setValueAtTime(time, now);
-
-    const tapGain = ctx.createGain();
-    tapGain.gain.setValueAtTime(reverbGains[i], now);
-
-    gain.connect(delay);
-    delay.connect(tapGain);
-    tapGain.connect(ctx.destination);
-  });
 
   osc.start(now);
   osc.stop(now + SUSTAIN_SECONDS);
