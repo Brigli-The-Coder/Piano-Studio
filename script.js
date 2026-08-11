@@ -423,26 +423,26 @@ function playNote(frequency) {
 }
 
 // ==========================================================
-// PIANO KEY DIVIDERS (decorative, interactive)
+// PIANO KEY DIVIDERS (interactive, real playable octave)
+// One octave, C4 -> C5, with correct black keys in between.
+// No auto-play/random "playing itself" anymore — keys sound
+// only when the user actually presses them, like a real piano.
 // ==========================================================
 function buildPianoKeys() {
-  const WHITE_COUNT = 20;
-  const blackAfter = [true, true, false, true, true, true, false];
+  // 8 white keys: C4 D4 E4 F4 G4 A4 B4 C5
+  const WHITE_NOTES = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
 
-  // Map key index -> note name, ONLY for keys that should play sound.
-  // Index counts white keys left-to-right starting at 0; black keys use
-  // the format "<precedingWhiteIndex>b" (the black key right after that
-  // white key). Leave a key out of this map and it stays silent/decorative,
-  // exactly like today — just add entries here as notes are assigned.
-  //
-  // Example (uncomment/edit once specific keys are chosen):
-  // const KEY_NOTES = {
-  //   0: 'C4',
-  //   '0b': 'C#4',
-  //   1: 'D4',
-  //   2: 'E4',
-  // };
-  const KEY_NOTES = {};
+  // Black key sits right after the white key at this index,
+  // except after E (index 2) and after the last B->C (index 6 has one: A#).
+  // Standard pattern within an octave: C C# D D# E F F# G G# A A# B (C)
+  // So black keys occur after white index: 0(C#),1(D#),3(F#),4(G#),5(A#)
+  const BLACK_AFTER_WHITE_INDEX = {
+    0: 'C#4',
+    1: 'D#4',
+    3: 'F#4',
+    4: 'G#4',
+    5: 'A#4'
+  };
 
   document.querySelectorAll('[data-piano]').forEach((container) => {
     container.innerHTML = '';
@@ -454,26 +454,25 @@ function buildPianoKeys() {
     container.appendChild(whiteWrap);
 
     const whites = [];
-    for (let i = 0; i < WHITE_COUNT; i++) {
+    WHITE_NOTES.forEach((note, i) => {
       const key = document.createElement('div');
       key.className = 'key';
       key.dataset.index = i;
-      if (KEY_NOTES[i]) key.dataset.note = KEY_NOTES[i];
+      key.dataset.note = note;
       whiteWrap.appendChild(key);
       whites.push(key);
-    }
+    });
 
     requestAnimationFrame(() => {
       const whiteWidth = whites[0].getBoundingClientRect().width;
       whites.forEach((w, i) => {
-        const octavePos = i % 7;
-        if (blackAfter[octavePos] && i < WHITE_COUNT - 1) {
+        const blackNote = BLACK_AFTER_WHITE_INDEX[i];
+        if (blackNote) {
           const black = document.createElement('div');
           black.className = 'key black';
           black.style.left = w.offsetLeft + whiteWidth * 0.68 + 'px';
           black.style.width = whiteWidth * 0.62 + 'px';
-          const blackKey = i + 'b';
-          if (KEY_NOTES[blackKey]) black.dataset.note = KEY_NOTES[blackKey];
+          black.dataset.note = blackNote;
           whiteWrap.appendChild(black);
         }
       });
@@ -488,16 +487,10 @@ function buildPianoKeys() {
         playNote(NOTE_FREQUENCIES[note]);
       }
     };
+
     whiteWrap.addEventListener('pointerdown', (e) => {
       if (e.target.classList.contains('key')) press(e.target);
     });
-
-    setInterval(() => {
-      const allKeys = whiteWrap.querySelectorAll('.key');
-      if (!allKeys.length) return;
-      const el = allKeys[Math.floor(Math.random() * allKeys.length)];
-      press(el);
-    }, 900);
   });
 }
 
