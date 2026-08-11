@@ -386,6 +386,11 @@ function getAudioContext() {
 // Standard piano note frequencies (Hz), 4th/5th octave range.
 // Extend this map as needed — key = note name, value = frequency.
 const NOTE_FREQUENCIES = {
+  'E3': 164.81,
+  'F3': 174.61, 'F#3': 185.00,
+  'G3': 196.00, 'G#3': 207.65,
+  'A3': 220.00, 'A#3': 233.08,
+  'B3': 246.94,
   'C4': 261.63, 'C#4': 277.18,
   'D4': 293.66, 'D#4': 311.13,
   'E4': 329.63,
@@ -429,19 +434,27 @@ function playNote(frequency) {
 // only when the user actually presses them, like a real piano.
 // ==========================================================
 function buildPianoKeys() {
-  // 8 white keys: C4 D4 E4 F4 G4 A4 B4 C5
-  const WHITE_NOTES = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+  // White keys from E3 up to F5 (~2.5 octaves)
+  const WHITE_NOTES = [
+    'E3', 'F3', 'G3', 'A3', 'B3',
+    'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4',
+    'C5', 'D5', 'E5', 'F5'
+  ];
 
-  // Black key sits right after the white key at this index,
-  // except after E (index 2) and after the last B->C (index 6 has one: A#).
-  // Standard pattern within an octave: C C# D D# E F F# G G# A A# B (C)
-  // So black keys occur after white index: 0(C#),1(D#),3(F#),4(G#),5(A#)
+  // Black key sits right after the white key at this index.
+  // Standard pattern: C C# D D# E F F# G G# A A# B (C) — no black
+  // key after E or after B.
   const BLACK_AFTER_WHITE_INDEX = {
-    0: 'C#4',
-    1: 'D#4',
-    3: 'F#4',
-    4: 'G#4',
-    5: 'A#4'
+    1: 'F#3',
+    2: 'G#3',
+    3: 'A#3',
+    5: 'C#4',
+    6: 'D#4',
+    8: 'F#4',
+    9: 'G#4',
+    10: 'A#4',
+    12: 'C#5',
+    13: 'D#5'
   };
 
   document.querySelectorAll('[data-piano]').forEach((container) => {
